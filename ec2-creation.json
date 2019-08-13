@@ -1,0 +1,53 @@
+{
+   "AWSTemplateFormatVersion" : "2010-09-09",
+   "Description" : "Ec2 with block device mapping",
+   "Resources" : {
+      "NewEc2Instance" : {
+         "Type" : "AWS::EC2::Instance",
+         "Properties" : {
+            "InstanceType" : "t2.small",
+			"ImageId" : "ami-0080e4c5bc078760e",
+            "KeyName" : "KeyPairForExideRetailerApp-NVerginia",
+            "BlockDeviceMappings" : [{
+                  "DeviceName" : "/dev/sdm",
+                  "Ebs" : { "VolumeSize" : "1" }
+            }],
+			"UserData": {
+				"Fn::Base64": {
+					"Fn::Join": ["", 
+						[
+						"#!/bin/bash -v\n",
+						"sudo yum -y update\n",
+						"sudo yum -y install git\n",
+						"curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.32.0/install.sh | bash\n",
+						". /.nvm/nvm.sh\n",
+						"nvm install 10.15.0\n",
+						"sed -i '$i export NVM_DIR=\"/.nvm\"' /home/ec2-user/.bashrc\n",
+						"sed -i '$i [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"' /home/ec2-user/.bashrc\n",
+						"sed -i '$i export PATH=$PATH:/.nvm/versions/node/v10.15.0/bin' /home/ec2-user/.bashrc\n",
+						"cd /home/ec2-user\n",
+						"git init\n",						
+						"git clone \"https://SpecIndiaTsl:ALT123alt@gitlab.com/SpecIndiaTsl/exdrtlapp.git\"\n",
+						"git clone \"https://SpecIndiaTsl:ALT123alt@gitlab.com/SpecIndiaTsl/ReactClientV1.git\"\n",
+						"git clone \"https://SpecIndiaTsl:ALT123alt@gitlab.com/SpecIndiaTsl/NodeServerV1.git\"\n",
+						"chmod -R 777 /home/ec2-user/NodeServerV1\n",
+						"chmod -R 777 /home/ec2-user/ReactClientV1\n"
+						]
+					]
+				}
+			}
+         }
+      }
+   },
+   "Outputs" : {
+        "InstanceId" : {
+            "Description" : "The InstanceId of the newly created EC2 instance",
+            "Value" : {	"Ref" : "NewEc2Instance"	}
+        },
+		"PublicIp" : {
+			"Description" : "Server's PublicIp Address",
+			"Value" : { "Fn::GetAtt" : [ "NewEc2Instance", "PublicIp" ]}
+		}
+    }
+}
+
